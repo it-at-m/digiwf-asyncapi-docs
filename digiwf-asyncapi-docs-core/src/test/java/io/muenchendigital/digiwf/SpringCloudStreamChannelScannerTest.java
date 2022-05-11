@@ -1,0 +1,97 @@
+package io.muenchendigital.digiwf;
+
+
+import com.asyncapi.v2.binding.OperationBinding;
+import com.asyncapi.v2.binding.kafka.KafkaOperationBinding;
+import com.asyncapi.v2.model.channel.ChannelItem;
+import com.asyncapi.v2.model.channel.operation.Operation;
+import io.github.stavshamir.springwolf.asyncapi.types.channel.operation.message.Message;
+import io.github.stavshamir.springwolf.schemas.DefaultSchemasService;
+import io.github.stavshamir.springwolf.schemas.SchemasService;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Map;
+
+public class SpringCloudStreamChannelScannerTest {
+
+    private final SchemasService schemasService = new DefaultSchemasService();
+    private final String basePackage = "io.muenchendigital.digiwf";
+
+    @Test
+    void scannerScanConsumersTest() {
+        final String groupId = "demo";
+
+        // props
+        final List<String> definitions = List.of("receiveMessage", "receiveAnotherMessage");
+        final Map<String, Map<String, String>> bindings = Map.of(
+                "receiveMessage-in-0", Map.of("group", groupId, "destination", "kafka-demo-receive-message"),
+                "receiveAnotherMessage-in-0", Map.of("group", groupId, "destination", "kafka-demo-receive-another-message")
+        );
+
+        final SpringCloudStreamChannelScanner scanner = new SpringCloudStreamChannelScanner(this.schemasService, definitions, bindings, this.basePackage);
+        final Map<String, ChannelItem> channels = scanner.scan();
+
+        Assertions.assertEquals(2, channels.keySet().size());
+
+        channels.keySet().forEach(channelKey -> {
+            // verify that channelKey == destination
+            Assertions.assertTrue(bindings
+                    .values()
+                    .stream()
+                    .anyMatch(binding -> binding.get("destination").equals(channelKey)));
+
+            final ChannelItem channel = channels.get(channelKey);
+            final Operation operation = channel.getPublish();
+
+            this.verifyOperationMessagePayload((Message) operation.getMessage());
+            this.verifyOperationBindings((Map<String, OperationBinding>) operation.getBindings(), groupId, channelKey);
+        });
+    }
+
+    @Test
+    void scannerScanProducerTest() {
+        // props
+        final List<String> definitions = List.of("sendMessage");
+        final Map<String, Map<String, String>> bindings = Map.of(
+                "sendMessage-out-0", Map.of("destination", "kafka-demo-send-message")
+        );
+
+        final SpringCloudStreamChannelScanner scanner = new SpringCloudStreamChannelScanner(this.schemasService, definitions, bindings, this.basePackage);
+        final Map<String, ChannelItem> channels = scanner.scan();
+
+        Assertions.assertEquals(1, channels.keySet().size());
+
+        channels.keySet().forEach(channelKey -> {
+            // verify that channelKey == destination
+            Assertions.assertTrue(bindings
+                    .values()
+                    .stream()
+                    .anyMatch(binding -> binding.get("destination").equals(channelKey)));
+
+            final ChannelItem channel = channels.get(channelKey);
+            final Operation operation = channel.getSubscribe();
+
+            this.verifyOperationMessagePayload((Message) operation.getMessage());
+            this.verifyOperationBindings((Map<String, OperationBinding>) operation.getBindings(), channelKey);
+        });
+    }
+
+    private void verifyOperationMessagePayload(final Message msg) {
+        Assertions.assertEquals(Payload.class.getName(), msg.getName());
+        Assertions.assertEquals(Payload.class.getSimpleName(), msg.getTitle());
+        Assertions.assertEquals("#/components/schemas/" + Payload.class.getSimpleName(), msg.getPayload().get$ref());
+    }
+
+    private void verifyOperationBindings(final Map<String, OperationBinding> bindingsMap, final String groupId, final String destination) {
+        this.verifyOperationBindings(bindingsMap, destination);
+        final KafkaOperationBinding kafkaOperationBinding = (KafkaOperationBinding) bindingsMap.get(destination);
+        Assertions.assertEquals(groupId, kafkaOperationBinding.getGroupId());
+    }
+
+    private void verifyOperationBindings(final Map<String, OperationBinding> bindingsMap, final String destination) {
+        Assertions.assertTrue(bindingsMap.containsKey(destination));
+    }
+
+}
