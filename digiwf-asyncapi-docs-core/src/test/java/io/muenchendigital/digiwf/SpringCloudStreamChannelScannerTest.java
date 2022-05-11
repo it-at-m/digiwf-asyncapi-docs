@@ -21,7 +21,7 @@ public class SpringCloudStreamChannelScannerTest {
 
     @Test
     void scannerScanConsumersTest() {
-        final String groupId = "demo";
+        final String groupId = "simpleConsumers";
 
         // props
         final List<String> definitions = List.of("receiveMessage", "receiveAnotherMessage");
@@ -45,7 +45,7 @@ public class SpringCloudStreamChannelScannerTest {
             final ChannelItem channel = channels.get(channelKey);
             final Operation operation = channel.getPublish();
 
-            this.verifyOperationMessagePayload((Message) operation.getMessage());
+            this.verifyOperationMessagePayload((Message) operation.getMessage(), Payload.class);
             this.verifyOperationBindings((Map<String, OperationBinding>) operation.getBindings(), groupId, channelKey);
         });
     }
@@ -73,15 +73,45 @@ public class SpringCloudStreamChannelScannerTest {
             final ChannelItem channel = channels.get(channelKey);
             final Operation operation = channel.getSubscribe();
 
-            this.verifyOperationMessagePayload((Message) operation.getMessage());
+            this.verifyOperationMessagePayload((Message) operation.getMessage(), Payload.class);
             this.verifyOperationBindings((Map<String, OperationBinding>) operation.getBindings(), channelKey);
         });
     }
 
-    private void verifyOperationMessagePayload(final Message msg) {
-        Assertions.assertEquals(Payload.class.getName(), msg.getName());
-        Assertions.assertEquals(Payload.class.getSimpleName(), msg.getTitle());
-        Assertions.assertEquals("#/components/schemas/" + Payload.class.getSimpleName(), msg.getPayload().get$ref());
+    @Test
+    void scannerScanConsumersWithFunctionRouterTest() {
+        final String groupId = "functionRouterConsumers";
+
+        // props
+        final List<String> definitions = List.of("functionRouter");
+        final Map<String, Map<String, String>> bindings = Map.of(
+                "functionRouter-in-0", Map.of("group", groupId, "destination", "kafka-demo-function-router-in")
+        );
+
+        final SpringCloudStreamChannelScanner scanner = new SpringCloudStreamChannelScanner(this.schemasService, definitions, bindings, this.basePackage);
+        final Map<String, ChannelItem> channels = scanner.scan();
+
+        Assertions.assertEquals(1, channels.keySet().size());
+
+        channels.keySet().forEach(channelKey -> {
+            // verify that channelKey == destination
+            Assertions.assertTrue(bindings
+                    .values()
+                    .stream()
+                    .anyMatch(binding -> binding.get("destination").equals(channelKey)));
+
+            final ChannelItem channel = channels.get(channelKey);
+            final Operation operation = channel.getPublish();
+
+            this.verifyOperationMessagePayload((Message) operation.getMessage(), Object.class);
+            this.verifyOperationBindings((Map<String, OperationBinding>) operation.getBindings(), groupId, channelKey);
+        });
+    }
+
+    private void verifyOperationMessagePayload(final Message msg, final Class<?> messagePayload) {
+        Assertions.assertEquals(messagePayload.getName(), msg.getName());
+        Assertions.assertEquals(messagePayload.getSimpleName(), msg.getTitle());
+        Assertions.assertEquals("#/components/schemas/" + messagePayload.getSimpleName(), msg.getPayload().get$ref());
     }
 
     private void verifyOperationBindings(final Map<String, OperationBinding> bindingsMap, final String groupId, final String destination) {

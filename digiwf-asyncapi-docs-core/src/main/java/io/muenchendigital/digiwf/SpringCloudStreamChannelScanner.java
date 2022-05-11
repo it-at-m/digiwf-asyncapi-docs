@@ -1,5 +1,6 @@
 package io.muenchendigital.digiwf;
 
+import com.asyncapi.v2.binding.OperationBinding;
 import com.asyncapi.v2.binding.kafka.KafkaOperationBinding;
 import com.asyncapi.v2.model.channel.ChannelItem;
 import com.asyncapi.v2.model.channel.operation.Operation;
@@ -24,15 +25,15 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
 
     @Override
     public Map<String, ChannelItem> scan() {
-        Map<String, ChannelItem> channels = new HashMap<>();
+        final Map<String, ChannelItem> channels = new HashMap<>();
 
         // get @DocumentAsyncAPI classes
-        Reflections reflections = new Reflections(this.basePackage);
-        Set<Class<?>> annotatedConsumersAndProducers = reflections.getTypesAnnotatedWith(DocumentAsyncAPI.class);
+        final Reflections reflections = new Reflections(this.basePackage);
+        final Set<Class<?>> annotatedConsumersAndProducers = reflections.getTypesAnnotatedWith(DocumentAsyncAPI.class);
 
         // add each binding (consumers and producers) to documentation
         this.bindings.keySet().forEach(binding -> {
-            Map<String, String> bindingProps = this.bindings.get(binding);
+            final Map<String, String> bindingProps = this.bindings.get(binding);
 
             // verify that cloud function is declared for binding
             final Optional<String> definition = this.definitions.stream()
@@ -45,7 +46,7 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
             }
 
             // check that cloud function exists in class with @DocumentAsyncAPI annotation
-            var annotatedCloudFunction = annotatedConsumersAndProducers
+            final var annotatedCloudFunction = annotatedConsumersAndProducers
                     .stream()
                     .filter(annotated -> Arrays.stream(annotated.getDeclaredMethods())
                             .anyMatch(method -> definition.get().equals(method.getName())))
@@ -100,6 +101,41 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
                 channels.put(bindingProps.get("destination"), channelItem);
             }
         });
+
+        // input function router specific
+        if (this.definitions.stream()
+                .anyMatch(def -> def.equals("functionRouter"))) {
+            final Map<String, String> bindingProps = this.bindings.get("functionRouter-in-0");
+            final KafkaOperationBinding kafkaBinding = new KafkaOperationBinding();
+
+            // message payload
+            final Class<?> payload = Object.class;
+            final String modelName = this.schemasService.register(payload);
+            final Message msg = Message.builder()
+                    .name(payload.getName())
+                    .title(modelName)
+                    .payload(PayloadReference.fromModelName(modelName))
+                    .build();
+            // Operation
+            final Map<String, OperationBinding> bindings = new HashMap<>();
+            Arrays.stream(bindingProps.get("destination").split(","))
+                    .forEach(dest -> {
+                        bindings.put(dest, kafkaBinding);
+                    });
+            final String group = bindingProps.get("group");
+            if (group != null) {
+                kafkaBinding.setGroupId(group);
+            }
+            final Operation operation = Operation.builder()
+                    .message(msg)
+                    .bindings(bindings)
+                    .build();
+            // ChannelItem
+            final ChannelItem channelItem = ChannelItem.builder()
+                    .publish(operation)
+                    .build();
+            channels.put(bindingProps.get("destination"), channelItem);
+        }
 
         return channels;
     }
