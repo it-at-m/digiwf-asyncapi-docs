@@ -66,39 +66,29 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
 
             final KafkaOperationBinding kafkaBinding = new KafkaOperationBinding();
 
-            // message payload
-            final Class<?> payload = annotatedCloudFunction.get().getAnnotation(DocumentAsyncAPI.class).payload();
-            final String modelName = this.schemasService.register(payload);
-            final Message msg = Message.builder()
-                    .name(payload.getName())
-                    .title(modelName)
-                    .payload(PayloadReference.fromModelName(modelName))
-                    .build();
+            final String group = bindingProps.get("group");
+            if (group != null) {
+                kafkaBinding.setGroupId(group);
+            }
 
-            // Operation
-            final Operation operation = Operation.builder()
-                    .message(msg)
-                    .bindings(Map.of(bindingProps.get("destination"), kafkaBinding))
-                    .build();
+            final String destination = bindingProps.get("destination");
+            final Class<?> payload = annotatedCloudFunction.get().getAnnotation(DocumentAsyncAPI.class).payload();
+            final Operation operation = this.createOperation(payload, List.of(bindingProps.get("destination").split(",")), kafkaBinding);
 
             // finally put channel items together for consumers (in) and producers (out)
             if (binding.contains("in")) {
-                final String group = bindingProps.get("group");
-                if (group != null) {
-                    kafkaBinding.setGroupId(group);
-                }
                 // ChannelItem
                 final ChannelItem channelItem = ChannelItem.builder()
                         .publish(operation)
                         .build();
-                channels.put(bindingProps.get("destination"), channelItem);
+                channels.put(destination, channelItem);
             }
             if (binding.contains("out")) {
                 // ChannelItem
                 final ChannelItem channelItem = ChannelItem.builder()
                         .subscribe(operation)
                         .build();
-                channels.put(bindingProps.get("destination"), channelItem);
+                channels.put(destination, channelItem);
             }
         });
 
@@ -108,28 +98,12 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
             final Map<String, String> bindingProps = this.bindings.get("functionRouter-in-0");
             final KafkaOperationBinding kafkaBinding = new KafkaOperationBinding();
 
-            // message payload
-            final Class<?> payload = Object.class;
-            final String modelName = this.schemasService.register(payload);
-            final Message msg = Message.builder()
-                    .name(payload.getName())
-                    .title(modelName)
-                    .payload(PayloadReference.fromModelName(modelName))
-                    .build();
-            // Operation
-            final Map<String, OperationBinding> bindings = new HashMap<>();
-            Arrays.stream(bindingProps.get("destination").split(","))
-                    .forEach(dest -> {
-                        bindings.put(dest, kafkaBinding);
-                    });
             final String group = bindingProps.get("group");
             if (group != null) {
                 kafkaBinding.setGroupId(group);
             }
-            final Operation operation = Operation.builder()
-                    .message(msg)
-                    .bindings(bindings)
-                    .build();
+
+            final Operation operation = this.createOperation(Object.class, List.of(bindingProps.get("destination").split(",")), kafkaBinding);
             // ChannelItem
             final ChannelItem channelItem = ChannelItem.builder()
                     .publish(operation)
@@ -138,6 +112,25 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
         }
 
         return channels;
+    }
+
+    private Operation createOperation(final Class<?> payload, final List<String> destination, final KafkaOperationBinding kafkaOperationBinding) {
+        final String modelName = this.schemasService.register(payload);
+        final Message msg = Message.builder()
+                .name(payload.getName())
+                .title(modelName)
+                .payload(PayloadReference.fromModelName(modelName))
+                .build();
+
+        final Map<String, OperationBinding> bindings = new HashMap<>();
+        destination.forEach(dest -> {
+            bindings.put(dest, kafkaOperationBinding);
+        });
+
+        return Operation.builder()
+                .message(msg)
+                .bindings(bindings)
+                .build();
     }
 
 }
