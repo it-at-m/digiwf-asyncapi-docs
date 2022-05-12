@@ -51,6 +51,36 @@ public class SpringCloudStreamChannelScannerTest {
     }
 
     @Test
+    void scannerScanConsumersListenToMultipleStreamsTest() {
+        final String groupId = "simpleConsumers";
+
+        // props
+        final List<String> definitions = List.of("receiveMessage");
+        final Map<String, Map<String, String>> bindings = Map.of(
+                "receiveMessage-in-0", Map.of("group", groupId, "destination", "kafka-demo-receive-message,kafka-demo-receive-another-message")
+        );
+
+        final SpringCloudStreamChannelScanner scanner = new SpringCloudStreamChannelScanner(this.schemasService, definitions, bindings, this.basePackage);
+        final Map<String, ChannelItem> channels = scanner.scan();
+
+        Assertions.assertEquals(1, channels.keySet().size());
+
+        channels.keySet().forEach(channelKey -> {
+            // verify that channelKey == destination
+            Assertions.assertTrue(bindings
+                    .values()
+                    .stream()
+                    .anyMatch(binding -> binding.get("destination").equals(channelKey)));
+
+            final ChannelItem channel = channels.get(channelKey);
+            final Operation operation = channel.getPublish();
+
+            this.verifyOperationMessagePayload((Message) operation.getMessage(), Payload.class);
+            this.verifyOperationBindings((Map<String, OperationBinding>) operation.getBindings(), groupId, List.of(channelKey.split(",")));
+        });
+    }
+
+    @Test
     void scannerScanProducerTest() {
         // props
         final List<String> definitions = List.of("sendMessage");
@@ -88,7 +118,7 @@ public class SpringCloudStreamChannelScannerTest {
                 "functionRouter-in-0", Map.of("group", groupId, "destination", "kafka-demo-function-router-in")
         );
 
-        final SpringCloudStreamChannelScanner scanner = new SpringCloudStreamChannelScanner(this.schemasService, definitions, bindings, this.basePackage);
+        final SpringCloudStreamChannelScanner scanner = new SpringCloudStreamChannelScanner(this.schemasService, definitions, bindings, this.basePackage, true);
         final Map<String, ChannelItem> channels = scanner.scan();
 
         Assertions.assertEquals(1, channels.keySet().size());
@@ -115,9 +145,15 @@ public class SpringCloudStreamChannelScannerTest {
     }
 
     private void verifyOperationBindings(final Map<String, OperationBinding> bindingsMap, final String groupId, final String destination) {
-        this.verifyOperationBindings(bindingsMap, destination);
-        final KafkaOperationBinding kafkaOperationBinding = (KafkaOperationBinding) bindingsMap.get(destination);
-        Assertions.assertEquals(groupId, kafkaOperationBinding.getGroupId());
+        this.verifyOperationBindings(bindingsMap, groupId, List.of(destination));
+    }
+
+    private void verifyOperationBindings(final Map<String, OperationBinding> bindingsMap, final String groupId, final List<String> destinations) {
+        destinations.forEach(destination -> {
+            this.verifyOperationBindings(bindingsMap, destination);
+            final KafkaOperationBinding kafkaOperationBinding = (KafkaOperationBinding) bindingsMap.get(destination);
+            Assertions.assertEquals(groupId, kafkaOperationBinding.getGroupId());
+        });
     }
 
     private void verifyOperationBindings(final Map<String, OperationBinding> bindingsMap, final String destination) {

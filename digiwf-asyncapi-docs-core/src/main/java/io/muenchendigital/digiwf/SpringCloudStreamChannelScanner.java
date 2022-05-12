@@ -22,20 +22,23 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
     private List<String> definitions;
     private Map<String, Map<String, String>> bindings;
     private String basePackage = "";
+    private boolean functionRouterEnabled = false;
+
+    public SpringCloudStreamChannelScanner(final SchemasService schemasService, final List<String> definitions, final Map<String, Map<String, String>> bindings, final String basePackage) {
+        this.schemasService = schemasService;
+        this.definitions = definitions;
+        this.bindings = bindings;
+        this.basePackage = basePackage;
+    }
 
     @Override
     public Map<String, ChannelItem> scan() {
         final Map<String, ChannelItem> channels = new HashMap<>();
 
-        // get @DocumentAsyncAPI classes
         final Reflections reflections = new Reflections(this.basePackage);
         final Set<Class<?>> annotatedConsumersAndProducers = reflections.getTypesAnnotatedWith(DocumentAsyncAPI.class);
 
-        // add each binding (consumers and producers) to documentation
         this.bindings.keySet().forEach(binding -> {
-            final Map<String, String> bindingProps = this.bindings.get(binding);
-
-            // verify that cloud function is declared for binding
             final Optional<String> definition = this.definitions.stream()
                     .filter(def -> def.equals(binding.split("-")[0]))
                     .findAny();
@@ -45,73 +48,61 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
                 return;
             }
 
-            // check that cloud function exists in class with @DocumentAsyncAPI annotation
-            final var annotatedCloudFunction = annotatedConsumersAndProducers
-                    .stream()
-                    .filter(annotated -> Arrays.stream(annotated.getDeclaredMethods())
-                            .anyMatch(method -> definition.get().equals(method.getName())))
-                    .findAny();
-
-            if (annotatedCloudFunction.isEmpty()) {
-                log.warn("No documentation found for {}. Did you annotate your cloud function with @DocumentAsyncAPI", definition.get());
-                return;
-            }
-
-            // if destination is not specified ignore the cloud function
-            // if you want to use a function router you have to specify the producers manually
-            if (bindingProps.get("destination") == null) {
-                log.warn("No destination specified for {}", definition.get());
-                return;
-            }
+            final String group = this.getGroup(binding);
+            final String destination = this.getDestination(binding);
+            final Class<?> payload = this.getPayload(annotatedConsumersAndProducers, definition.get()).orElse(Object.class);
 
             final KafkaOperationBinding kafkaBinding = new KafkaOperationBinding();
+            kafkaBinding.setGroupId(group);
+            final Operation operation = this.createOperation(payload, List.of(destination.split(",")), kafkaBinding);
+            final ChannelItem channelItem = ChannelItem.builder().build();
 
-            final String group = bindingProps.get("group");
-            if (group != null) {
-                kafkaBinding.setGroupId(group);
+            if (this.functionRouterEnabled
+                    && this.definitions.stream().anyMatch(def -> def.equals("functionRouter"))
+                    && binding.contains("functionRouter")
+            ) {
+                channelItem.setPublish(operation);
+            }
+            else {
+                // if destination is not specified ignore the cloud function
+                // if you want to use a function router you have to specify the producers manually
+                if (destination.isBlank()) {
+                    log.warn("No destination specified for {}", definition.get());
+                    return;
+                }
+
+                if (binding.contains("in")) {
+                    channelItem.setPublish(operation);
+                }
+                if (binding.contains("out")) {
+                    channelItem.setSubscribe(operation);
+                }
             }
 
-            final String destination = bindingProps.get("destination");
-            final Class<?> payload = annotatedCloudFunction.get().getAnnotation(DocumentAsyncAPI.class).payload();
-            final Operation operation = this.createOperation(payload, List.of(bindingProps.get("destination").split(",")), kafkaBinding);
-
-            // finally put channel items together for consumers (in) and producers (out)
-            if (binding.contains("in")) {
-                // ChannelItem
-                final ChannelItem channelItem = ChannelItem.builder()
-                        .publish(operation)
-                        .build();
-                channels.put(destination, channelItem);
-            }
-            if (binding.contains("out")) {
-                // ChannelItem
-                final ChannelItem channelItem = ChannelItem.builder()
-                        .subscribe(operation)
-                        .build();
-                channels.put(destination, channelItem);
-            }
+            channels.put(destination, channelItem);
         });
-
-        // input function router specific
-        if (this.definitions.stream()
-                .anyMatch(def -> def.equals("functionRouter"))) {
-            final Map<String, String> bindingProps = this.bindings.get("functionRouter-in-0");
-            final KafkaOperationBinding kafkaBinding = new KafkaOperationBinding();
-
-            final String group = bindingProps.get("group");
-            if (group != null) {
-                kafkaBinding.setGroupId(group);
-            }
-
-            final Operation operation = this.createOperation(Object.class, List.of(bindingProps.get("destination").split(",")), kafkaBinding);
-            // ChannelItem
-            final ChannelItem channelItem = ChannelItem.builder()
-                    .publish(operation)
-                    .build();
-            channels.put(bindingProps.get("destination"), channelItem);
-        }
-
         return channels;
+    }
+
+    private String getGroup(final String binding) {
+        return this.bindings.get(binding).get("group");
+    }
+
+    private String getDestination(final String binding) {
+        return this.bindings.get(binding).get("destination");
+    }
+
+    private Optional<Class<?>> getPayload(final Set<Class<?>> annotatedConsumersAndProducers, final String definition) {
+        final var annotatedCloudFunction = annotatedConsumersAndProducers
+                .stream()
+                .filter(annotated -> Arrays.stream(annotated.getDeclaredMethods())
+                        .anyMatch(method -> definition.equals(method.getName())))
+                .findAny();
+        if (annotatedCloudFunction.isEmpty()) {
+            log.warn("No documentation found for {}. Did you annotate your cloud function with @DocumentAsyncAPI", definition);
+            return Optional.empty();
+        }
+        return Optional.of(annotatedCloudFunction.get().getAnnotation(DocumentAsyncAPI.class).payload());
     }
 
     private Operation createOperation(final Class<?> payload, final List<String> destination, final KafkaOperationBinding kafkaOperationBinding) {

@@ -4,6 +4,7 @@ import io.github.stavshamir.springwolf.schemas.SchemasService;
 import io.muenchendigital.digiwf.SpringCloudStreamChannelScanner;
 import io.muenchendigital.digiwf.properties.BindingProperties;
 import io.muenchendigital.digiwf.properties.DefinitionProperties;
+import io.muenchendigital.digiwf.properties.FunctionRouterProperties;
 import io.muenchendigital.digiwf.properties.PackageProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,7 @@ public class AsyncAPIDocsAutoConfiguration {
     private final BindingProperties bindingProperties;
     private final DefinitionProperties definitionProperties;
     private final PackageProperties packageProperties;
+    private final FunctionRouterProperties functionRouterProperties;
 
 
     @Bean
@@ -26,7 +28,8 @@ public class AsyncAPIDocsAutoConfiguration {
                 this.schemasService,
                 this.definitionProperties.getDefinitions(),
                 this.bindingProperties.getBindings(),
-                this.packageProperties.getBasePackage()
+                this.packageProperties.getBasePackage(),
+                this.functionRouterProperties.isEnabled()
         );
     }
 
