@@ -1,7 +1,7 @@
 package io.muenchendigital.digiwf.producer;
 
 import io.muenchendigital.digiwf.DocumentAsyncAPI;
-import io.muenchendigital.digiwf.dto.MessageDto;
+import io.muenchendigital.digiwf.dto.DeploymentEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,18 +11,18 @@ import reactor.core.publisher.Sinks;
 
 import java.util.function.Supplier;
 
-@DocumentAsyncAPI(payload = MessageDto.class)
+@DocumentAsyncAPI(payload = DeploymentEvent.class)
 @Slf4j
 @Configuration
-public class ProducerConfig {
+public class DeploymentProducerConfig {
 
     @Bean
-    public Sinks.Many<Message<MessageDto>> createMessageSink() {
+    public Sinks.Many<Message<DeploymentEvent>> deploymentSink() {
         return Sinks.many().unicast().onBackpressureBuffer();
     }
 
     @Bean
-    public Supplier<Flux<Message<MessageDto>>> sendMessage(final Sinks.Many<Message<MessageDto>> messagePublisher) {
-        return messagePublisher::asFlux;
+    public Supplier<Flux<Message<DeploymentEvent>>> deployArtifact(final Sinks.Many<Message<DeploymentEvent>> sink) {
+        return sink::asFlux;
     }
 }
