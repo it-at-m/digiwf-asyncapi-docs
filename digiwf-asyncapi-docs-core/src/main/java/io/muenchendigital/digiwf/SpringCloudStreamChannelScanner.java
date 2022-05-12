@@ -14,6 +14,10 @@ import org.reflections.Reflections;
 
 import java.util.*;
 
+/**
+ * SpringCloudStreamChannelScanner generates ChannelItems for spring cloud stream consumers and producers based on
+ * configuration properties.
+ */
 @Slf4j
 @AllArgsConstructor
 public class SpringCloudStreamChannelScanner implements ChannelsScanner {
@@ -31,10 +35,17 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
         this.basePackage = basePackage;
     }
 
+    /**
+     * Generates ChannelItems for spring cloud stream consumers and producers based on configuration properties and @DocumentAsyncAPI annotation.
+     * The channelItems are added to the springwolf documentation.
+     *
+     * @return channelItems
+     */
     @Override
     public Map<String, ChannelItem> scan() {
         final Map<String, ChannelItem> channels = new HashMap<>();
 
+        // get classes annotated with @DocumentAsyncAPI
         final Reflections reflections = new Reflections(this.basePackage);
         final Set<Class<?>> annotatedConsumersAndProducers = reflections.getTypesAnnotatedWith(DocumentAsyncAPI.class);
 
@@ -48,21 +59,25 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
                 return;
             }
 
-            final String group = this.getGroup(binding);
-            final String destination = this.getDestination(binding);
+            // get group, destination and paylod
+            final String group = this.bindings.get(binding).get("group");
+            final String destination = this.bindings.get(binding).get("destination");
             final Class<?> payload = this.getPayload(annotatedConsumersAndProducers, definition.get()).orElse(Object.class);
 
+            // put it all together to a ChannelItem
             final KafkaOperationBinding kafkaBinding = new KafkaOperationBinding();
             kafkaBinding.setGroupId(group);
             final Operation operation = this.createOperation(payload, List.of(destination.split(",")), kafkaBinding);
             final ChannelItem channelItem = ChannelItem.builder().build();
 
+            // if binding belongs to a function router
             if (this.functionRouterEnabled
                     && this.definitions.stream().anyMatch(def -> def.equals("functionRouter"))
                     && binding.contains("functionRouter")
             ) {
                 channelItem.setPublish(operation);
             }
+            // if binding does not belong to a function router
             else {
                 // if destination is not specified ignore the cloud function
                 // if you want to use a function router you have to specify the producers manually
@@ -84,14 +99,13 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
         return channels;
     }
 
-    private String getGroup(final String binding) {
-        return this.bindings.get(binding).get("group");
-    }
-
-    private String getDestination(final String binding) {
-        return this.bindings.get(binding).get("destination");
-    }
-
+    /**
+     * Get the payload class type from consumer and producers classes annotated with @DocumentAsyncAPI annotation.
+     *
+     * @param annotatedConsumersAndProducers
+     * @param definition
+     * @return
+     */
     private Optional<Class<?>> getPayload(final Set<Class<?>> annotatedConsumersAndProducers, final String definition) {
         final var annotatedCloudFunction = annotatedConsumersAndProducers
                 .stream()
@@ -105,6 +119,14 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
         return Optional.of(annotatedCloudFunction.get().getAnnotation(DocumentAsyncAPI.class).payload());
     }
 
+    /**
+     * Create Operation item
+     *
+     * @param payload
+     * @param destination
+     * @param kafkaOperationBinding
+     * @return
+     */
     private Operation createOperation(final Class<?> payload, final List<String> destination, final KafkaOperationBinding kafkaOperationBinding) {
         final String modelName = this.schemasService.register(payload);
         final Message msg = Message.builder()
