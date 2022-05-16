@@ -44,14 +44,15 @@ The documentation project is built with technologies we use in our projects:
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-## Set up
-*how can i start and fly this project*
+## Getting started
+
+For an explanation on how to get started, please refer to the [quickstart doc](docs/quickstart.md).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Documentation
 
-DigiWF asyncapi-docs-starter documentation is available [here](docs/READE.md).
+For all further documentation, please refer to the [documentations doc](docs/documentation.md).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

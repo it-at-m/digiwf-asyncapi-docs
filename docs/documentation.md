@@ -1,11 +1,15 @@
 # asyncapi-docs-starter documentation
 
-This library is built on top of [springwolf](https://springwolf.github.io/) and adds support for spring cloud stream producers and consumers.
+[Springwolf](https://springwolf.github.io/) is a library that auto-generate documentation of async APIs.
+It currently does not support spring cloud stream apis. 
+Therefore, this library provides a custom implementation of a `ChannelsScanner` that auto-generates documentation based on 
+the spring cloud stream consumer and producer properties configured in application.properties.
 
 ## Usage
 
 This library will automatically generate documentations for the channels you configured.
 Therefore, configure spring cloud stream consumer and producer functions as you are used to. And annotate the classes which contain the spring cloud function `@bean`s with the `@DocumentAsyncAPI(payload = YourPayloadClass.class)`.
+The annotation `@DocumentAsyncAPI(payload = YourPayloadClass.class)` is used to determine the payload type of  the events.
 Additionally, you should add a `io.muenchendigital.digiwf.basePackage` property to your application.properties file with the base package of your application. For example:
 
 ```
@@ -14,7 +18,7 @@ io.muenchendigital.digiwf.basePackage=io.muenchendigital.digiwf
 
 ### Example for consumers
 
-1. Add properties to application.property
+1. Add properties to application.properties
 
 ```
 # default binder
