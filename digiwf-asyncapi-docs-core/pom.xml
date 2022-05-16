@@ -24,7 +24,7 @@
         <dependency>
             <groupId>io.github.springwolf</groupId>
             <artifactId>springwolf-ui</artifactId>
-            <version>${springwolf.version}</version>
+            <version>${springwolf.ui.version}</version>
         </dependency>
         <!-- Reflections -->
         <dependency>
