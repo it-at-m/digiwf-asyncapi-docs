@@ -1,19 +1,30 @@
 # asyncapi-docs-starter documentation
 
 [Springwolf](https://springwolf.github.io/) is a library that auto-generate documentation of async APIs.
-It currently does not support spring cloud stream apis. 
+It currently does not support spring cloud stream apis.
 Therefore, this library provides a custom implementation of a `ChannelsScanner` that auto-generates documentation based on 
 the spring cloud stream consumer and producer properties configured in application.properties.
+It also provides a springwolf configuration class that provides out of the box documentation
 
 ## Usage
 
 This library will automatically generate documentations for the channels you configured.
 Therefore, configure spring cloud stream consumer and producer functions as you are used to. And annotate the classes which contain the spring cloud function `@bean`s with the `@DocumentAsyncAPI(payload = YourPayloadClass.class)`.
 The annotation `@DocumentAsyncAPI(payload = YourPayloadClass.class)` is used to determine the payload type of  the events.
-Additionally, you should add a `io.muenchendigital.digiwf.basePackage` property to your application.properties file with the base package of your application. For example:
+Additionally, you should add the base package of your application and the version and title of the docs to the application.properties file.
+Therefore, you set the following properties:
 
 ```
-io.muenchendigital.digiwf.basePackage=io.muenchendigital.digiwf
+io.muenchendigital.digiwf.docs.basePackage=io.muenchendigital.digiwf
+io.muenchendigital.digiwf.docs.version=1.0.0
+io.muenchendigital.digiwf.docs.title=kafka-example
+```
+
+Additionally, you should provide a default-binder and the brokers:
+
+```
+spring.cloud.stream.default-binder=kafka
+spring.cloud.stream.kafka.binder.brokers=localhost:9092
 ```
 
 ### Example for consumers
@@ -31,8 +42,9 @@ spring.cloud.function.definition=receiveMessage
 spring.cloud.stream.bindings.receiveMessage-in-0.destination=kafka-demo-receive-message,kafka-demo-test1
 spring.cloud.stream.bindings.receiveMessage-in-0.group=kafka-demo
 
-# required base package
-io.muenchendigital.digiwf.basePackage=io.muenchendigital.digiwf
+io.muenchendigital.digiwf.docs.basePackage=io.muenchendigital.digiwf
+io.muenchendigital.digiwf.docs.version=1.0.0
+io.muenchendigital.digiwf.docs.title=kafka-example
 ```
 
 2. Create the consumer
@@ -72,8 +84,9 @@ spring.cloud.function.definition=sendMessage
 # channel binding
 spring.cloud.stream.bindings.sendMessage-out-0.destination=kafka-demo-send-message
 
-# required base package
-io.muenchendigital.digiwf.basePackage=io.muenchendigital.digiwf
+io.muenchendigital.digiwf.docs.basePackage=io.muenchendigital.digiwf
+io.muenchendigital.digiwf.docs.version=1.0.0
+io.muenchendigital.digiwf.docs.title=kafka-example
 ```
 
 2. Create the producer
@@ -104,7 +117,7 @@ public class ProducerConfig {
 ## Limitations
 
 - **Function routers**: This library cannot track producers that use function routing (`spring.cloud.stream.sendto.destination` header). If you use this feature of spring cloud stream you have to manually declare the producers according to [springwolfs documentation](https://springwolf.github.io/docs/documenting-producers).
-- **Kafka headers**: Kafka headers are currently not supported by springwolf. After this library ist built on springwolf it also does not support kafka headers.
+- **Kafka headers**: Kafka headers are currently not supported by springwolf. After this library ist built on springwolf it also does not support kafka headers so far.
 
 ## Example App
 

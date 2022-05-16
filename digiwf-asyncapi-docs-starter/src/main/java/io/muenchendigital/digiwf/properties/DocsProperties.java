@@ -8,7 +8,9 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 @Getter
 @Configuration
-@ConfigurationProperties(prefix = "io.muenchendigital.digiwf")
-public class PackageProperties {
+@ConfigurationProperties(prefix = "io.muenchendigital.digiwf.docs")
+public class DocsProperties {
     private String basePackage;
+    private String version;
+    private String title;
 }

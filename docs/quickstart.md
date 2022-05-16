@@ -42,17 +42,24 @@ implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-bi
 
 4. Add properties for spring cloud stream consumers and producers to application.properties
 
-5. Setup the base package of your application in the application.properties. For example
+```
+spring.cloud.stream.default-binder=kafka
+spring.cloud.stream.kafka.binder.brokers=localhost:9092
+spring.cloud.function.definition=receiveMessage
+spring.cloud.stream.bindings.receiveMessage-in-0.destination=kafka-demo-receive-message,kafka-demo-test1
+spring.cloud.stream.bindings.receiveMessage-in-0.group=kafka-demo
+```
+
+5. Setup the base package, version and title of docs of your application in the application.properties. For example
 
 ```
-# required base package
-io.muenchendigital.digiwf.basePackage=io.muenchendigital.digiwf
+io.muenchendigital.digiwf.docs.basePackage=io.muenchendigital.digiwf
+io.muenchendigital.digiwf.docs.version=1.0.0
+io.muenchendigital.digiwf.docs.title=kafka-example
 ```
 
 6. Annotate your ConsumerConfiguration Classes with `@DocumentAsyncAPI(payload = YourPayloadClass.class)`
 
-7. Create a springwolf configuration class. See [springwolfs documentation](https://springwolf.github.io/docs/quickstart#configuration-class)
-
-8. Check out the documentation at [http://localhost:8080/springwolf/asyncapi-ui.html](http://localhost:8080/springwolf/asyncapi-ui.html)
+7. Check out the documentation at [http://localhost:8080/springwolf/asyncapi-ui.html](http://localhost:8080/springwolf/asyncapi-ui.html)
 
 **For more information and code examples see [documentation.md](documentation.md)**
