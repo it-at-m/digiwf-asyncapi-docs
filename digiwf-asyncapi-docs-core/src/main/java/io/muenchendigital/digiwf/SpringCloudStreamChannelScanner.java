@@ -78,21 +78,24 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
                 channelItem.setPublish(operation);
                 return;
             }
+            // if binding does not belong to a function router
+            else {
+                // if destination is not specified ignore the cloud function
+                // if you want to use a function router you have to specify the producers manually
+                if (destination.isBlank()) {
+                    log.warn("No destination specified for {}", definition.get());
+                    return;
+                }
 
-            // if destination is not specified ignore the cloud function
-            // if you want to use a function router you have to specify the producers manually
-            if (destination.isBlank()) {
-                log.warn("No destination specified for {}", definition.get());
-                return;
+                if (binding.contains("in")) {
+                    channelItem.setPublish(operation);
+                }
+                if (binding.contains("out")) {
+                    channelItem.setSubscribe(operation);
+                }
             }
 
-            if (binding.contains("in")) {
-                channelItem.setPublish(operation);
-            }
-            if (binding.contains("out")) {
-                channelItem.setSubscribe(operation);
-            }
-
+            // add the created channelItem to channels
             channels.put(destination, channelItem);
         });
         return channels;
