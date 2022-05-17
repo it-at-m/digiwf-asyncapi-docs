@@ -76,7 +76,6 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
                     && binding.contains("functionRouter")
             ) {
                 channelItem.setPublish(operation);
-                return;
             }
             // if binding does not belong to a function router
             else {
