@@ -22,8 +22,7 @@ With Gradle:
 implementation group: 'io.muenchendigital.digiwf', name: 'digiwf-asyncapi-docs-starter', version: '${digiwf.version}'
 ```
 
-3. Add your preferred binder (see [Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream)). In this
-   example, we use kafka.
+3. Add the kafka binder (see [Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream)).
 
 Maven:
 
@@ -50,7 +49,7 @@ spring.cloud.stream.bindings.receiveMessage-in-0.destination=kafka-demo-receive-
 spring.cloud.stream.bindings.receiveMessage-in-0.group=kafka-demo
 ```
 
-5. Setup the base package, version and title of docs of your application in the application.properties. For example
+5. Setup the base package, version and title of docs for your application in the application.properties. For example
 
 ```
 io.muenchendigital.digiwf.docs.basePackage=io.muenchendigital.digiwf

@@ -8,6 +8,7 @@ import io.muenchendigital.digiwf.AsyncApiConfiguration;
 import io.muenchendigital.digiwf.SpringCloudStreamChannelScanner;
 import io.muenchendigital.digiwf.properties.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,6 +25,7 @@ public class AsyncAPIDocsAutoConfiguration {
     private final KafkaProperties kafkaProperties;
 
     @Bean
+    @ConditionalOnMissingBean
     public SchemasService schemasService() {
         return new DefaultSchemasService();
     }
@@ -51,9 +53,9 @@ public class AsyncAPIDocsAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public AsyncApiDocket asyncApiDocket(final AsyncApiConfiguration asyncApiConfiguration) {
         return asyncApiConfiguration.asyncApiDocket();
     }
-
 
 }

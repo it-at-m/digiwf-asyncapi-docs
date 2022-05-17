@@ -10,7 +10,7 @@ It also provides a springwolf configuration class that provides out of the box d
 
 This library will automatically generate documentations for the channels you configured.
 Therefore, configure spring cloud stream consumer and producer functions as you are used to. And annotate the classes which contain the spring cloud function `@bean`s with the `@DocumentAsyncAPI(payload = YourPayloadClass.class)`.
-The annotation `@DocumentAsyncAPI(payload = YourPayloadClass.class)` is used to determine the payload type of  the events.
+The annotation `@DocumentAsyncAPI(payload = YourPayloadClass.class)` is used to determine the payload type of the events.
 Additionally, you should add the base package of your application and the version and title of the docs to the application.properties file.
 Therefore, you set the following properties:
 
@@ -66,9 +66,7 @@ public class ConsumerConfiguration {
 }
 ```
 
-3. Create a springwolf configuration class. See [springwolfs documentation](https://springwolf.github.io/docs/quickstart#configuration-class)
-
-4. Check out the documentation at [http://localhost:8080/springwolf/asyncapi-ui.html](http://localhost:8080/springwolf/asyncapi-ui.html)
+3. Check out the documentation at [http://localhost:8080/springwolf/asyncapi-ui.html](http://localhost:8080/springwolf/asyncapi-ui.html)
 
 ### Example for producers
 
@@ -109,15 +107,14 @@ public class ProducerConfig {
 }
 ```
 
-3. Create a springwolf configuration class. See [springwolfs documentation](https://springwolf.github.io/docs/quickstart#configuration-class)
-
-4. Check out the documentation at [http://localhost:8080/springwolf/asyncapi-ui.html](http://localhost:8080/springwolf/asyncapi-ui.html)
+3. Check out the documentation at [http://localhost:8080/springwolf/asyncapi-ui.html](http://localhost:8080/springwolf/asyncapi-ui.html)
 
 
 ## Limitations
 
 - **Function routers**: This library cannot track producers that use function routing (`spring.cloud.stream.sendto.destination` header). If you use this feature of spring cloud stream you have to manually declare the producers according to [springwolfs documentation](https://springwolf.github.io/docs/documenting-producers).
 - **Kafka headers**: Kafka headers are currently not supported by springwolf. After this library ist built on springwolf it also does not support kafka headers so far.
+- **Kafka binder support only**: At the moment this library only supports the spring cloud stream kafka binder.
 
 ## Example App
 
