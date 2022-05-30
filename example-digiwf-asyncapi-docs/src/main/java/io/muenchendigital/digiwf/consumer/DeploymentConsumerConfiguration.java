@@ -10,12 +10,12 @@ import org.springframework.messaging.Message;
 
 import java.util.function.Consumer;
 
-@DocumentAsyncAPI(payload = DeploymentEvent.class)
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class DeploymentConsumerConfiguration {
 
+    @DocumentAsyncAPI(payload = DeploymentEvent.class)
     @Bean
     public Consumer<Message<DeploymentEvent>> deployments() {
         return message -> {

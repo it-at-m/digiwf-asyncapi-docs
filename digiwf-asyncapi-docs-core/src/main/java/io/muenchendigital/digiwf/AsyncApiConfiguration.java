@@ -29,7 +29,7 @@ public class AsyncApiConfiguration {
         return AsyncApiDocket.builder()
                 .basePackage(this.basePackage)
                 .info(info)
-                .server("kafka", kafkaServer)
+                .server(this.binder, kafkaServer)
                 .build();
     }
 

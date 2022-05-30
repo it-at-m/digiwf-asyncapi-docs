@@ -10,12 +10,12 @@ import org.springframework.messaging.Message;
 
 import java.util.function.Consumer;
 
-@DocumentAsyncAPI(payload = MessageDto.class)
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class ConsumerConfiguration {
 
+    @DocumentAsyncAPI(payload = MessageDto.class)
     @Bean
     public Consumer<Message<MessageDto>> receiveMessage() {
         return message -> {

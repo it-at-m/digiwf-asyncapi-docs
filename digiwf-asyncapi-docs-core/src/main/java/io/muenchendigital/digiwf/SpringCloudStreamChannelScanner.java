@@ -11,8 +11,12 @@ import io.github.stavshamir.springwolf.schemas.SchemasService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
 
+import java.lang.reflect.Method;
 import java.util.*;
+
+import static org.reflections.scanners.Scanners.MethodsAnnotated;
 
 /**
  * SpringCloudStreamChannelScanner generates ChannelItems for spring cloud stream consumers and producers based on
@@ -46,8 +50,9 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
         final Map<String, ChannelItem> channels = new HashMap<>();
 
         // get classes annotated with @DocumentAsyncAPI
-        final Reflections reflections = new Reflections(this.basePackage);
-        final Set<Class<?>> annotatedConsumersAndProducers = reflections.getTypesAnnotatedWith(DocumentAsyncAPI.class);
+        final Reflections reflections = new Reflections(this.basePackage, Scanners.values());
+//        final Set<Method> annotatedConsumersAndProducers = reflections.getMethodsAnnotatedWith(DocumentAsyncAPI.class);
+        final Set<Method> annotatedConsumersAndProducers = reflections.get(MethodsAnnotated.with(DocumentAsyncAPI.class).as(Method.class));
 
         this.bindings.keySet().forEach(binding -> {
             final Optional<String> definition = this.definitions.stream()
@@ -107,11 +112,10 @@ public class SpringCloudStreamChannelScanner implements ChannelsScanner {
      * @param definition
      * @return
      */
-    private Optional<Class<?>> getPayload(final Set<Class<?>> annotatedConsumersAndProducers, final String definition) {
+    private Optional<Class<?>> getPayload(final Set<Method> annotatedConsumersAndProducers, final String definition) {
         final var annotatedCloudFunction = annotatedConsumersAndProducers
                 .stream()
-                .filter(annotated -> Arrays.stream(annotated.getDeclaredMethods())
-                        .anyMatch(method -> definition.equals(method.getName())))
+                .filter(annotated -> definition.equals(annotated.getName()))
                 .findAny();
         if (annotatedCloudFunction.isEmpty()) {
             log.warn("No documentation found for {}. Did you annotate your cloud function with @DocumentAsyncAPI", definition);

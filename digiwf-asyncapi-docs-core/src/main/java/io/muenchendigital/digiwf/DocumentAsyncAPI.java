@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * Restrictions: This annotation only works for regular producer functions. If you use dynamic routing,
  * you have to specify producers manually.
  */
-@Target({ElementType.TYPE})
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DocumentAsyncAPI {
     Class<?> payload();
