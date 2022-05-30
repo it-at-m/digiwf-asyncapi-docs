@@ -1,6 +1,6 @@
 package io.muenchendigital.digiwf.producer;
 
-import io.muenchendigital.digiwf.DocumentAsyncAPI;
+import io.muenchendigital.digiwf.annotations.DocumentAsyncAPI;
 import io.muenchendigital.digiwf.dto.DeploymentEvent;
 import io.muenchendigital.digiwf.dto.MessageDto;
 import lombok.extern.slf4j.Slf4j;

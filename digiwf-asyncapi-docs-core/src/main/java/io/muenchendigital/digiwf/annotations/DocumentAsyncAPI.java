@@ -1,4 +1,4 @@
-package io.muenchendigital.digiwf;
+package io.muenchendigital.digiwf.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -16,4 +16,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DocumentAsyncAPI {
     Class<?> payload();
+    boolean functionRouter() default false;
+    String typeHeader() default "";
 }
