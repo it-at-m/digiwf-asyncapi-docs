@@ -17,8 +17,9 @@ import java.util.stream.Collectors;
 import static org.reflections.scanners.Scanners.MethodsAnnotated;
 
 /**
- * ConsumerAndProducerScanner generates ChannelItems for spring cloud stream consumers and producers based on
- * configuration properties.
+ * FunctionRouter scanner generates ChannelItems if the spring cloud stream function router is enabled
+ *
+ * Annotate your cloud functions with @DocumentAsyncAPI(payload = YourClass.class, functionRouter = true, typeHeader = "yourTypeHeader") for this scanner to detect them.
  */
 @Slf4j
 public class FunctionRouterScanner extends SpringCloudStreamScanner implements ChannelsScanner {
@@ -28,7 +29,7 @@ public class FunctionRouterScanner extends SpringCloudStreamScanner implements C
     }
 
     /**
-     * Generates ChannelItems for spring cloud stream consumers and producers based on configuration properties and @DocumentAsyncAPI annotation.
+     * Generates ChannelItems for spring cloud stream consumers based on configuration properties and @DocumentAsyncAPI annotation.
      * The channelItems are added to the springwolf documentation.
      *
      * @return channelItems
@@ -37,7 +38,7 @@ public class FunctionRouterScanner extends SpringCloudStreamScanner implements C
     public Map<String, ChannelItem> scan() {
         final Map<String, ChannelItem> channels = new HashMap<>();
 
-        // get classes annotated with @DocumentAsyncAPI
+        // get classes annotated with @DocumentAsyncAPI and function router enabled
         final Reflections reflections = new Reflections(this.basePackage, Scanners.values());
         final Set<Method> functionRouterConsumers = reflections.get(MethodsAnnotated.with(DocumentAsyncAPI.class).as(Method.class))
                 .stream()

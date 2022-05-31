@@ -13,7 +13,7 @@
 <br />
 <div align="center">
   <a href="#">
-    <img src="/images/logo.png" alt="Logo" height="200">
+    <img src="images/logo.png" alt="Logo" height="200">
   </a>
 
 <h3 align="center">DigiWF <i>asyncapi-docs-starter</i></h3>

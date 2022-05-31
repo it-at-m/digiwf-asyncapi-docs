@@ -17,6 +17,8 @@ import java.util.*;
 /**
  * ConsumerAndProducerScanner generates ChannelItems for spring cloud stream consumers and producers based on
  * configuration properties.
+ *
+ * Annotate your cloud functions with @DocumentAsyncAPI(payload = YourClass.class) for this scanner to detect them.
  */
 @Slf4j
 @AllArgsConstructor
@@ -78,7 +80,7 @@ public abstract class SpringCloudStreamScanner {
     }
 
     /**
-     * Get the payload class type from consumer and producers classes annotated with @DocumentAsyncAPI annotation.
+     * Get the payload class type for a specific cloud function definition annotated with @DocumentAsyncAPI annotation.
      *
      * @param annotatedConsumersAndProducers
      * @param definition
@@ -96,6 +98,12 @@ public abstract class SpringCloudStreamScanner {
         return Optional.of(annotatedCloudFunction.get().getAnnotation(DocumentAsyncAPI.class).payload());
     }
 
+    /**
+     * Get a list of payloads for a set of methods annotated with @DocumentAsyncAPI annotation.
+     *
+     * @param annotatedConsumersAndProducers
+     * @return
+     */
     Optional<List<Class<?>>> getPayload(final Set<Method> annotatedConsumersAndProducers) {
         List<Class<?>> payloads = new ArrayList<>();
         annotatedConsumersAndProducers.forEach(method -> payloads.add(method.getAnnotation(DocumentAsyncAPI.class).payload()));
@@ -123,14 +131,12 @@ public abstract class SpringCloudStreamScanner {
                 .payload(PayloadReference.fromModelName(modelName))
                 .build();
 
-        final Map<String, OperationBinding> bindings = new HashMap<>();
-        destination.forEach(dest -> {
-            bindings.put(dest, kafkaOperationBinding);
-        });
+        final Map<String, OperationBinding> operationBindings = new HashMap<>();
+        destination.forEach(dest -> operationBindings.put(dest, kafkaOperationBinding));
 
         return Operation.builder()
                 .message(msg)
-                .bindings(bindings)
+                .bindings(operationBindings)
                 .build();
     }
 

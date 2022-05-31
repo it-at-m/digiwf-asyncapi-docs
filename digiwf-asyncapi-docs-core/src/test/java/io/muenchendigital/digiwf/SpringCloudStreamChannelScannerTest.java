@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class SpringCloudStreamChannelScannerTest {
+class SpringCloudStreamChannelScannerTest {
 
     private final SchemasService schemasService = new DefaultSchemasService();
     private final String basePackage = "io.muenchendigital.digiwf";

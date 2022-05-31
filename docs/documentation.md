@@ -2,14 +2,14 @@
 
 [Springwolf](https://springwolf.github.io/) is a library that auto-generate documentation of async APIs.
 It currently does not support spring cloud stream apis.
-Therefore, this library provides a custom implementation of a `ChannelsScanner` that auto-generates documentation based on 
+Therefore, this library provides custom implementations of `ChannelsScanner`s that auto-generates documentation based on 
 the spring cloud stream consumer and producer properties configured in application.properties.
 It also provides a springwolf configuration class that provides out of the box documentation
 
 ## Usage
 
 This library will automatically generate documentations for the channels you configured.
-Therefore, configure spring cloud stream consumer and producer functions as you are used to. And annotate the classes which contain the spring cloud function `@bean`s with the `@DocumentAsyncAPI(payload = YourPayloadClass.class)`.
+Therefore, configure spring cloud stream consumer and producer functions as you are used to. And annotate the spring cloud function `@bean`s with the `@DocumentAsyncAPI(payload = YourPayloadClass.class)`.
 The annotation `@DocumentAsyncAPI(payload = YourPayloadClass.class)` is used to determine the payload type of the events.
 Additionally, you should add the base package of your application and the version and title of the docs to the application.properties file.
 Therefore, you set the following properties:
@@ -110,11 +110,52 @@ public class ProducerConfig {
 3. Check out the documentation at [http://localhost:8080/springwolf/asyncapi-ui.html](http://localhost:8080/springwolf/asyncapi-ui.html)
 
 
+## Usage with an active Function Router
+
+If you use a function router you have to document the functions you route the messages to with the `@DocumentAsyncAPI` annotation.
+Therefore, annotate the method with `@DocumentAsyncAPI(payload = YourClass.class, functionRouter = true, typeHeader = "yourTypeHeader")`.
+
+> Note: Currently spring wolf does not support kafka headers. Therefore, the generated documentation may be inaccurate.
+
+### Consumer Example Function Router
+
+```java
+@Configuration
+public class FunctionRouterConfiguration {
+    @Bean
+    @ConditionalOnMissingBean
+    public MessageRoutingCallback customRouter() {
+        return null;
+    }
+}
+
+@Slf4j
+@Configuration
+public class FunctionRouterConsumers {
+
+    @DocumentAsyncAPI(payload = MessageDto.class, functionRouter = true, typeHeader = "receiveMessage")
+    @Bean
+    public Consumer<Message<MessageDto>> functionRouterReceiveMessage() {
+        return message -> {
+            log.info(message.getPayload().getMessage());
+        };
+    }
+
+    @DocumentAsyncAPI(payload = DeploymentEvent.class, functionRouter = true, typeHeader = "receiveAnotherMessage")
+    @Bean
+    public Consumer<Message<DeploymentEvent>> functionRouterDeployments() {
+        return message -> {
+            log.info(message.getPayload().getDeploymentId());
+        };
+    }
+}
+```
+
+
 ## Limitations
 
-- **Function routers**: This library cannot track producers that use function routing (`spring.cloud.stream.sendto.destination` header). If you use this feature of spring cloud stream you have to manually declare the producers according to [springwolfs documentation](https://springwolf.github.io/docs/documenting-producers).
+- **Dynamic Output Routing**: This library cannot track producers that use function routing (`spring.cloud.stream.sendto.destination` header). If you use this feature of spring cloud stream you have to manually declare the producers according to [springwolfs documentation](https://springwolf.github.io/docs/documenting-producers).
 - **Kafka headers**: Kafka headers are currently not supported by springwolf. After this library ist built on springwolf it also does not support kafka headers so far.
-- **Kafka binder support only**: At the moment this library only supports the spring cloud stream kafka binder.
 
 ## Example App
 

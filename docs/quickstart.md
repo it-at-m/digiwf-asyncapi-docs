@@ -57,7 +57,7 @@ io.muenchendigital.digiwf.docs.version=1.0.0
 io.muenchendigital.digiwf.docs.title=kafka-example
 ```
 
-6. Annotate your ConsumerConfiguration Classes with `@DocumentAsyncAPI(payload = YourPayloadClass.class)`
+6. Annotate your spring cloud functions with the `@DocumentAsyncAPI` annotation. For consumer and producer functions provide the payload to the annotation, e.g. `@DocumentAsyncAPI(payload = YourClass.class)`. If you use a function router provide additionally the type header, e.g. `@DocumentAsyncAPI(payload = YourClass.class, functionRouter = true, typeHeader = "yourTypeHeader")`.
 
 7. Check out the documentation at [http://localhost:8080/springwolf/asyncapi-ui.html](http://localhost:8080/springwolf/asyncapi-ui.html)
 

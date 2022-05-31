@@ -4,7 +4,7 @@ import io.github.stavshamir.springwolf.configuration.AsyncApiDocket;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class AsyncApiConfigurationTest {
+class AsyncApiConfigurationTest {
 
     @Test
     void asyncApiDocket() {
