@@ -13,7 +13,7 @@
 <br />
 <div align="center">
   <a href="#">
-    <img src="/images/logo.png" alt="Logo" height="200">
+    <img src="images/logo.png" alt="Logo" height="200">
   </a>
 
 <h3 align="center">DigiWF <i>asyncapi-docs-starter</i></h3>
@@ -32,6 +32,8 @@
 DigiWF asyncapi-docs-starter is a spring boot starter library that generates asyncapi documentation for spring-cloud-stream consumers and producers.
 Therefore, it adds support for spring-cloud-stream to springwolf.
 
+At the moment only the spring-cloud-stream kafka binder is supported. If you want to use this with another binder please open an issue and request the feature.
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ### Built With
@@ -44,14 +46,15 @@ The documentation project is built with technologies we use in our projects:
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-## Set up
-*how can i start and fly this project*
+## Getting started
+
+For an explanation on how to get started, please refer to the [quickstart doc](docs/quickstart.md).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Documentation
 
-DigiWF asyncapi-docs-starter documentation is available [here](docs/READE.md).
+For all further documentation, please refer to the [documentations doc](docs/documentation.md).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
