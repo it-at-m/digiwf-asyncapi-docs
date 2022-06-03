@@ -156,6 +156,7 @@ public class FunctionRouterConsumers {
 
 - **Dynamic Output Routing**: This library cannot track producers that use function routing (`spring.cloud.stream.sendto.destination` header). If you use this feature of spring cloud stream you have to manually declare the producers according to [springwolfs documentation](https://springwolf.github.io/docs/documenting-producers).
 - **Kafka headers**: Kafka headers are currently not supported by springwolf. After this library ist built on springwolf it also does not support kafka headers so far.
+- **Kafka support only**: At the moment this library uses kafka specific implementations. It may work with other binders too but the naming is very kafka specific.
 
 ## Example App
 

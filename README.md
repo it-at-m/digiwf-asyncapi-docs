@@ -32,6 +32,8 @@
 DigiWF asyncapi-docs-starter is a spring boot starter library that generates asyncapi documentation for spring-cloud-stream consumers and producers.
 Therefore, it adds support for spring-cloud-stream to springwolf.
 
+At the moment only the spring-cloud-stream kafka binder is supported. If you want to use this with another binder please open an issue and request the feature.
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ### Built With
