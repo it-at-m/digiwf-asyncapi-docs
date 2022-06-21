@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-    io.muenchendigital.digiwf.configuration.AsyncAPIDocsAutoConfiguration
+    io.muenchendigital.digiwf.asyncapi.docs.configuration.AsyncAPIDocsAutoConfiguration
