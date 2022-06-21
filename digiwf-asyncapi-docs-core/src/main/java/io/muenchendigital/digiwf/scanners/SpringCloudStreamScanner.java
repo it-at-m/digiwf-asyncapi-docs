@@ -51,12 +51,17 @@ public abstract class SpringCloudStreamScanner {
             // get group, destination and payload
             final String group = this.bindings.get(binding).get("group");
             final String destination = this.bindings.get(binding).get("destination");
-            final Class<?> payload = this.getPayload(annotatedConsumersAndProducers, definition.get()).orElse(Object.class);
+            final Optional<Class<?>> payload = this.getPayload(annotatedConsumersAndProducers, definition.get());
+
+            // if function router is enabled do nothing
+            if (payload.isEmpty()) {
+                return;
+            }
 
             // put it all together to a ChannelItem
             final KafkaOperationBinding kafkaBinding = new KafkaOperationBinding();
             kafkaBinding.setGroupId(group);
-            final Operation operation = this.createOperation(payload, List.of(destination.split(",")), kafkaBinding);
+            final Operation operation = this.createOperation(payload.get(), List.of(destination.split(",")), kafkaBinding);
             final ChannelItem channelItem = ChannelItem.builder().build();
 
             // if destination is not specified ignore the cloud function
@@ -105,7 +110,7 @@ public abstract class SpringCloudStreamScanner {
      * @return
      */
     Optional<List<Class<?>>> getPayload(final Set<Method> annotatedConsumersAndProducers) {
-        List<Class<?>> payloads = new ArrayList<>();
+        final List<Class<?>> payloads = new ArrayList<>();
         annotatedConsumersAndProducers.forEach(method -> payloads.add(method.getAnnotation(DocumentAsyncAPI.class).payload()));
 
         if (payloads.isEmpty()) {

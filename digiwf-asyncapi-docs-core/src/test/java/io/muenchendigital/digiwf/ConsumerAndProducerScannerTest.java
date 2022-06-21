@@ -9,15 +9,13 @@ import io.github.stavshamir.springwolf.asyncapi.types.channel.operation.message.
 import io.github.stavshamir.springwolf.schemas.DefaultSchemasService;
 import io.github.stavshamir.springwolf.schemas.SchemasService;
 import io.muenchendigital.digiwf.scanners.ConsumerAndProducerScanner;
-import io.muenchendigital.digiwf.scanners.FunctionRouterScanner;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-class SpringCloudStreamChannelScannerTest {
+class ConsumerAndProducerScannerTest {
 
     private final SchemasService schemasService = new DefaultSchemasService();
     private final String basePackage = "io.muenchendigital.digiwf";
@@ -49,7 +47,7 @@ class SpringCloudStreamChannelScannerTest {
             final Operation operation = channel.getPublish();
 
             this.verifyOperationMessagePayload((Message) operation.getMessage(), Payload.class);
-            this.verifyOperationBindings((Map<String, OperationBinding>) operation.getBindings(), groupId, channelKey);
+            this.verifyOperationBindings((Map<String, OperationBinding>) operation.getBindings(), groupId, List.of(channelKey));
         });
     }
 
@@ -112,7 +110,7 @@ class SpringCloudStreamChannelScannerTest {
     }
 
     @Test
-    void scannerScanConsumersWithFunctionRouterTest() {
+    void consumerScannerStillWorksIfFunctionRouterIsEnabled() {
         final String groupId = "functionRouterConsumers";
 
         // props
@@ -120,48 +118,17 @@ class SpringCloudStreamChannelScannerTest {
         final Map<String, Map<String, String>> bindings = Map.of(
                 "functionRouter-in-0", Map.of("group", groupId, "destination", "kafka-demo-function-router-in")
         );
-        final List<String> typeHeaders = List.of("receiveMessage", "receiveAnotherMessage");
 
-        final FunctionRouterScanner scanner = new FunctionRouterScanner(this.schemasService, definitions, bindings, this.basePackage);
+        final ConsumerAndProducerScanner scanner = new ConsumerAndProducerScanner(this.schemasService, definitions, bindings, this.basePackage);
         final Map<String, ChannelItem> channels = scanner.scan();
 
-        Assertions.assertEquals(2, channels.keySet().size());
-
-        channels.keySet().forEach(channelKey -> {
-            final Optional<String> type = typeHeaders
-                    .stream()
-                    .filter(typeHeader -> channelKey.contains(typeHeader))
-                    .findAny();
-            Assertions.assertTrue(type.isPresent());
-
-            final String destination = channelKey.split(type.get())[1].replace(": ", "");
-
-            // verify that channelKey == destination
-            Assertions.assertTrue(bindings
-                    .values()
-                    .stream()
-                    .anyMatch(binding -> binding.get("destination").equals(destination)));
-
-            final ChannelItem channel = channels.get(channelKey);
-            final Operation operation = channel.getPublish();
-
-            final Message msg = (Message) operation.getMessage();
-            Assertions.assertTrue(msg.getName().equals(Payload.class.getName()) || msg.getName().equals(Object.class.getName()));
-            Assertions.assertTrue(msg.getTitle().equals(Payload.class.getSimpleName()) || msg.getTitle().equals(Object.class.getSimpleName()));
-            Assertions.assertTrue(msg.getPayload().get$ref().equals("#/components/schemas/" + Payload.class.getSimpleName()) || msg.getPayload().get$ref().equals("#/components/schemas/" + Object.class.getSimpleName()));
-
-            this.verifyOperationBindings((Map<String, OperationBinding>) operation.getBindings(), destination);
-        });
+        Assertions.assertEquals(0, channels.keySet().size());
     }
 
     private void verifyOperationMessagePayload(final Message msg, final Class<?> messagePayload) {
         Assertions.assertEquals(messagePayload.getName(), msg.getName());
         Assertions.assertEquals(messagePayload.getSimpleName(), msg.getTitle());
         Assertions.assertEquals("#/components/schemas/" + messagePayload.getSimpleName(), msg.getPayload().get$ref());
-    }
-
-    private void verifyOperationBindings(final Map<String, OperationBinding> bindingsMap, final String groupId, final String destination) {
-        this.verifyOperationBindings(bindingsMap, groupId, List.of(destination));
     }
 
     private void verifyOperationBindings(final Map<String, OperationBinding> bindingsMap, final String groupId, final List<String> destinations) {

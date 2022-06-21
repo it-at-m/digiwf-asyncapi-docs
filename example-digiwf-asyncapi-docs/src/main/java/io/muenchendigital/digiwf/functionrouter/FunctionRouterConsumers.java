@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 @Configuration
 public class FunctionRouterConsumers {
 
-    @DocumentAsyncAPI(payload = MessageDto.class, functionRouter = true, typeHeader = "receiveMessage")
+    @DocumentAsyncAPI(payload = MessageDto.class, functionRouter = true, typeHeader = "functionRouterReceiveMessage")
     @Bean
     public Consumer<Message<MessageDto>> functionRouterReceiveMessage() {
         return message -> {
@@ -22,7 +22,7 @@ public class FunctionRouterConsumers {
         };
     }
 
-    @DocumentAsyncAPI(payload = DeploymentEvent.class, functionRouter = true, typeHeader = "receiveAnotherMessage")
+    @DocumentAsyncAPI(payload = DeploymentEvent.class, functionRouter = true, typeHeader = "functionRouterReceiveAnotherMessage")
     @Bean
     public Consumer<Message<DeploymentEvent>> functionRouterDeployments() {
         return message -> {
