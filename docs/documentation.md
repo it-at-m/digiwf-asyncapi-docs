@@ -90,7 +90,6 @@ io.muenchendigital.digiwf.docs.title=kafka-example
 2. Create the producer
 
 ```java
-@DocumentAsyncAPI(payload = MessageDto.class)
 @Slf4j
 @Configuration
 public class ProducerConfig {
@@ -100,6 +99,7 @@ public class ProducerConfig {
         return Sinks.many().unicast().onBackpressureBuffer();
     }
 
+    @DocumentAsyncAPI(payload = MessageDto.class)
     @Bean
     public Supplier<Flux<Message<MessageDto>>> sendMessage(final Sinks.Many<Message<MessageDto>> messagePublisher) {
         return messagePublisher::asFlux;
