@@ -1,4 +1,4 @@
-# asyncapi-docs-starter documentation
+# asyncapi-docs documentation
 
 [Springwolf](https://springwolf.github.io/) is a library that auto-generate documentation of async APIs.
 It currently does not support spring cloud stream apis.
