@@ -16,20 +16,20 @@
     <img src="images/logo.png" alt="Logo" height="200">
   </a>
 
-<h3 align="center">DigiWF <i>asyncapi-docs-starter</i></h3>
+<h3 align="center">DigiWF <i>asyncapi-docs</i></h3>
 
   <p align="center">
     <i>Spring boot starter that provides an asyncapi endpoint with springwolf for spring cloud stream consumers and producers</i>
-    <br /><a href="https://github.com/it-at-m/digiwf-asyncapi-docs-starter/issues">Report Bug</a>
+    <br /><a href="https://github.com/it-at-m/digiwf-asyncapi-docs/issues">Report Bug</a>
     ·
-    <a href="https://github.com/it-at-m/digiwf-asyncapi-docs-starter/issues">Request Feature</a>
+    <a href="https://github.com/it-at-m/digiwf-asyncapi-docs/issues">Request Feature</a>
   </p>
 </div>
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-DigiWF asyncapi-docs-starter is a spring boot starter library that generates asyncapi documentation for spring-cloud-stream consumers and producers.
+DigiWF asyncapi-docs is a spring boot starter library that generates asyncapi documentation for spring-cloud-stream consumers and producers.
 Therefore, it adds support for spring-cloud-stream to springwolf.
 
 At the moment only the spring-cloud-stream kafka binder is supported. If you want to use this with another binder please open an issue and request the feature.
