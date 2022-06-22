@@ -9,7 +9,6 @@ import java.util.Map;
 
 @Setter
 @Getter
-@Configuration
 @ConfigurationProperties(prefix = "spring.cloud.stream")
 public class BindingProperties {
 

@@ -6,31 +6,34 @@ import io.github.stavshamir.springwolf.schemas.DefaultSchemasService;
 import io.github.stavshamir.springwolf.schemas.SchemasService;
 import io.muenchendigital.digiwf.asyncapi.docs.AsyncApiConfiguration;
 import io.muenchendigital.digiwf.asyncapi.docs.properties.BindingProperties;
-import io.muenchendigital.digiwf.asyncapi.docs.properties.DefinitionProperties;
 import io.muenchendigital.digiwf.asyncapi.docs.properties.DocsProperties;
-import io.muenchendigital.digiwf.asyncapi.docs.properties.KafkaProperties;
 import io.muenchendigital.digiwf.asyncapi.docs.scanners.ConsumerAndProducerScanner;
 import io.muenchendigital.digiwf.asyncapi.docs.scanners.FunctionRouterScanner;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 
 @EnableAsyncApi
 @RequiredArgsConstructor
 @Configuration
-@ComponentScan(basePackages = "io.muenchendigital.digiwf.asyncapi.docs")
-@EnableConfigurationProperties({BindingProperties.class, DefinitionProperties.class, DocsProperties.class, KafkaProperties.class})
+@EnableConfigurationProperties({BindingProperties.class, DocsProperties.class})
 public class AsyncAPIDocsAutoConfiguration {
 
     private final BindingProperties bindingProperties;
-    private final DefinitionProperties definitionProperties;
     private final DocsProperties docsProperties;
-    private final KafkaProperties kafkaProperties;
+    @Value("${spring.cloud.stream.default-binder}")
+    private String defaultBinder;
+    @Value("${spring.cloud.stream.kafka.binder.brokers}")
+    private String broker;
+    @Value("#{'${spring.cloud.function.definition}'.split(';')}")
+    private List<String> definitions;
 
     @Bean
     @ConditionalOnMissingBean
@@ -42,7 +45,7 @@ public class AsyncAPIDocsAutoConfiguration {
     public ConsumerAndProducerScanner consumerAndProducerScanner(final SchemasService schemasService) {
         return new ConsumerAndProducerScanner(
                 schemasService,
-                this.definitionProperties.getDefinitions(),
+                this.definitions,
                 this.bindingProperties.getBindings(),
                 this.docsProperties.getBasePackage()
         );
@@ -53,7 +56,7 @@ public class AsyncAPIDocsAutoConfiguration {
     public FunctionRouterScanner functionRouterScanner(final SchemasService schemasService) {
         return new FunctionRouterScanner(
                 schemasService,
-                this.definitionProperties.getDefinitions(),
+                this.definitions,
                 this.bindingProperties.getBindings(),
                 this.docsProperties.getBasePackage()
         );
@@ -62,8 +65,8 @@ public class AsyncAPIDocsAutoConfiguration {
     @Bean
     public AsyncApiConfiguration asyncApiConfiguration() {
         return new AsyncApiConfiguration(
-                this.kafkaProperties.getDefaultBinder(),
-                this.kafkaProperties.getBroker(),
+                this.defaultBinder,
+                this.broker,
                 this.docsProperties.getBasePackage(),
                 this.docsProperties.getVersion(),
                 this.docsProperties.getTitle()
