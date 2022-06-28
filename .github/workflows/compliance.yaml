@@ -5,7 +5,7 @@ on: [push]
 jobs:
   compliance:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -16,6 +16,6 @@ jobs:
           policy: GeekMasher/security-queries
           policy-path: policies/default.yml
 
-          token: ${{ secrets.ACCESS_TOKEN }}
-          
+          token: ${{ secrets.ACCESS_TOKEN || secrets.GITHUB_TOKEN  }}
+
           argvs: '--disable-dependabot --disable-secret-scanning --disable-code-scanning'
