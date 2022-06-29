@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "io.muenchendigital.digiwf.docs")
 public class DocsProperties {
 
+    private boolean enabled = false;
     private String basePackage;
     private String version;
     private String title;

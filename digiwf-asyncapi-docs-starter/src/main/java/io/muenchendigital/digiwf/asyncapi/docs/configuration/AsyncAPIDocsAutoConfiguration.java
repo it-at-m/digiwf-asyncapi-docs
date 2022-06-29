@@ -20,11 +20,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 
-@ConditionalOnProperty(name = {
-        "spring.cloud.stream.default-binder", "spring.cloud.stream.kafka.binder.brokers", "spring.cloud.function.definition",
-        "io.muenchendigital.digiwf.docs.basePackage", "io.muenchendigital.digiwf.docs.version", "io.muenchendigital.digiwf.docs.title",
-        "spring.cloud.stream.bindings"
-})
+@ConditionalOnProperty(name = "io.muenchendigital.digiwf.docs.enabled")
 @EnableAsyncApi
 @RequiredArgsConstructor
 @Configuration
