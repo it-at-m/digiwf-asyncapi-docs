@@ -15,6 +15,7 @@ Additionally, you should add the base package of your application and the versio
 Therefore, you set the following properties:
 
 ```
+io.muenchendigital.digiwf.docs.enabled=true
 io.muenchendigital.digiwf.docs.basePackage=io.muenchendigital.digiwf
 io.muenchendigital.digiwf.docs.version=1.0.0
 io.muenchendigital.digiwf.docs.title=kafka-example

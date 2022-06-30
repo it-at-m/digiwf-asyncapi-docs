@@ -52,6 +52,7 @@ spring.cloud.stream.bindings.receiveMessage-in-0.group=kafka-demo
 5. Setup the base package, version and title of docs for your application in the application.properties. For example
 
 ```
+io.muenchendigital.digiwf.docs.enabled=true
 io.muenchendigital.digiwf.docs.basePackage=io.muenchendigital.digiwf
 io.muenchendigital.digiwf.docs.version=1.0.0
 io.muenchendigital.digiwf.docs.title=kafka-example

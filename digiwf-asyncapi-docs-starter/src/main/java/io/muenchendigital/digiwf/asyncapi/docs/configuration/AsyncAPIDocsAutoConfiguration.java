@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 
+@ConditionalOnProperty(name = "io.muenchendigital.digiwf.docs.enabled")
 @EnableAsyncApi
 @RequiredArgsConstructor
 @Configuration
